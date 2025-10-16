@@ -93,7 +93,13 @@ namespace MigraDocCore.Rendering
             /// <summary>
             /// Break formatting and continue in a new area (e.g. a new page).
             /// </summary>
-            NewArea
+            NewArea,
+
+            /// <summary>
+            /// Only part of the word fit. Need to split the word at the specified
+            /// location and insert the remaining word after this one.
+            /// </summary>
+            WordWrap
         }
         private Phase phase;
 
@@ -1408,6 +1414,34 @@ namespace MigraDocCore.Rendering
                             formatInfo.isEnding = false;
                         }
                         break;
+                    case FormatResult.WordWrap:
+                    {
+                        if (string.IsNullOrEmpty(((Text)currentLeaf.Current).Content))
+                            Debug.WriteLine("empty string!");
+
+                        if (currentLeaf.Current.Tag != null && currentLeaf.Current.Tag is int)
+                        {
+                            int fittingCharacters = (int)currentLeaf.Current.Tag;
+                            currentLeaf.Current.Tag = null;
+
+                            Text txtObject = currentLeaf.Current as Text;
+                            Debug.WriteLine("CurrentWord Before: " + txtObject.Content);
+                            if (txtObject != null)
+                            {
+                                string fits = txtObject.Content.Substring(0, fittingCharacters);
+                                string remaining = txtObject.Content.Substring(fittingCharacters);
+                                FormattedText parent = DocumentRelations.GetParentOfType(currentLeaf.Current, typeof(FormattedText)) as FormattedText;
+                                if (parent != null)
+                                {
+                                    int currentWordIndex = parent.Elements.IndexOf(currentLeaf.Current);
+                                    parent.Elements.InsertObject(currentWordIndex + 1, new Text(remaining));
+                                    txtObject.Content = fits;
+                                }
+                            }
+                            Debug.WriteLine("CurrentWord After: " + txtObject.Content);
+                        }
+                    }
+                        break;
                 }
                 if (result == FormatResult.NewArea)
                 {
@@ -1656,7 +1690,14 @@ namespace MigraDocCore.Rendering
         FormatResult FormatWord(string word)
         {
             XUnit width = MeasureString(word);
-            return FormatAsWord(width);
+            //return FormatAsWord(width);
+            if (currentLeaf.Current.Tag != null)
+                return FormatResult.WordWrap;
+
+            if (width > 0)
+                return FormatAsWord(width);
+            else
+                return FormatResult.Ignore;
         }
 
         XUnit savedWordWidth = 0;
@@ -1824,8 +1865,45 @@ namespace MigraDocCore.Rendering
 
         XUnit MeasureString(string word)
         {
+            //XFont xFont = CurrentFont;
+            //XUnit width = this.gfx.MeasureString(word, xFont, StringFormat).Width;
+            //Font font = CurrentDomFont;
+
+            //if (font.Subscript || font.Superscript)
+            //    width *= FontHandler.GetSubSuperScaling(xFont);
+
+            //return width;
+
+            if (string.IsNullOrEmpty(word))
+                return 0;
+
+            int len = word.Length;
+            int numFittingCharacters = 0;
+            XUnit width = 0;
             XFont xFont = CurrentFont;
-            XUnit width = this.gfx.MeasureString(word, xFont, StringFormat).Width;
+
+            // Determine how many characters of this word will fit in the supplied area.
+            try
+            {
+                if (formattingArea != null)
+                {
+                    width = gfx.MeasureString(word, xFont, formattingArea.Width.Point, out numFittingCharacters).Width;
+                    if (numFittingCharacters < len && numFittingCharacters > 0)
+                    {
+                        // Only set this when just a portion of the word fits
+                        currentLeaf.Current.Tag = numFittingCharacters;
+                    }
+                }
+                else
+                {
+                    width = gfx.MeasureString(word, xFont, StringFormat).Width;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Null formatting area?" + ex.Message);
+            }
+
             Font font = CurrentDomFont;
 
             if (font.Subscript || font.Superscript)

@@ -64,45 +64,54 @@ public class Export_MigraDocCore
         contentWidth = A4_WIDTH
                       - section.PageSetup.LeftMargin.Point
                       - section.PageSetup.RightMargin.Point;
-        // === 标题 ===
-        var titlePara = section.AddParagraph(model.Title);
-        titlePara.Format.Alignment = ParagraphAlignment.Center;
-        titlePara.Format.Font.Size = 24;
-        titlePara.Format.Font.Bold = true;
-        titlePara.Format.SpaceAfter = Unit.FromPoint(15);
+        //// === 标题 ===
+        //var titlePara = section.AddParagraph(model.Title);
+        //titlePara.Format.Alignment = ParagraphAlignment.Center;
+        //titlePara.Format.Font.Size = 24;
+        //titlePara.Format.Font.Bold = true;
+        //titlePara.Format.SpaceAfter = Unit.FromPoint(15);
 
-        // === 病人信息 ===
-        AddSectionHeader(section, "病人信息");
-        AddPatientInfoTable(section);
+        //// === 病人信息 ===
+        //AddSectionHeader(section, "病人信息");
+        //AddPatientInfoTable(section);
 
-        // === 手术信息 ===
-        AddSectionHeader(section, "手术信息");
-        AddSurgeryInfoTable(section);
+        //// === 手术信息 ===
+        //AddSectionHeader(section, "手术信息");
+        //AddSurgeryInfoTable(section);
 
-        // === 术前图像 ===
-        if (model.PreOpImagePaths?.Any() == true)
-        {
-            AddSectionHeader(section, "术前图像");
-            AddImages(section, model.PreOpImagePaths);
-        }
+        //// === 术前图像 ===
+        //if (model.PreOpImagePaths?.Any() == true)
+        //{
+        //    AddSectionHeader(section, "术前图像");
+        //    AddImages(section, model.PreOpImagePaths);
+        //}
 
-        // === 术后图像 ===
-        if (model.PostOpImagePaths?.Any() == true)
-        {
-            AddSectionHeader(section, "术后图像");
-            AddImages(section, model.PostOpImagePaths);
-        }
+        //// === 术后图像 ===
+        //if (model.PostOpImagePaths?.Any() == true)
+        //{
+        //    AddSectionHeader(section, "术后图像");
+        //    AddImages(section, model.PostOpImagePaths);
+        //}
 
         // === 术后评估 ===
         AddSectionHeader(section, "术后评估");
+        
+        string text = model.Evaluation ?? "无";
+        var evalPara = section.AddParagraph();
+        evalPara.AddFormattedText(text);
+        evalPara.Format.Font.Size = 14;
+        evalPara.Format.Font.Bold = true;
+        //evalPara.Format.FirstLineIndent = Unit.FromPoint(10);
+        //evalPara.Format.RightIndent = Unit.FromPoint(10);
+        //evalPara.Format.SpaceAfter = Unit.FromPoint(15);
 
         // 渲染为 PDF
         var renderer = new PdfDocumentRenderer(true);
         renderer.Document = doc;
         renderer.RenderDocument();
 
-        var pdfDocument = renderer.PdfDocument;
-        Evaluate(pdfDocument, doc);
+        //var pdfDocument = renderer.PdfDocument;
+        //Evaluate(pdfDocument, doc);
 
         //string text = model.Evaluation ?? "无";
         //var evalPara = section.AddParagraph(text);

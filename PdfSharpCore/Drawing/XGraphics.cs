@@ -1248,6 +1248,43 @@ namespace PdfSharpCore.Drawing  // #??? aufräumen
         // ----- MeasureString ------------------------------------------------------------------------
 
         /// <summary>
+        /// This is a special version of MeasureString that returns the width of the
+        /// portion of the string that fits.
+        /// </summary>
+        public XSize MeasureString(string text, XFont font, double desWidth, out int numFittingCharacters)
+        {
+            //#if !GDI
+            //            throw (new System.NotSupportedException);
+            //#endif
+
+            // Measure the Supplied String
+            XSize size = MeasureString(text, font, XStringFormats.Default);
+
+            // It fits, so just return the size and indicate that everything fit.
+            if ((size.Width < desWidth))
+            {
+                numFittingCharacters = text.Length;
+                return size;
+            }
+
+            double nWidth = size.Width;
+
+            string tempString = text;
+            string workString = "";
+
+            for (numFittingCharacters = text.Length; (numFittingCharacters > 0) && (nWidth > desWidth); numFittingCharacters--)
+            {
+                // Start at the end of the string and
+                // keep shortening until it fits.
+                // ----------------------------------
+                workString = tempString.Substring(0, numFittingCharacters);
+
+                size = MeasureString(workString, font, XStringFormats.Default);
+                nWidth = size.Width;
+            }
+            return size;
+        }
+        /// <summary>
         /// Measures the specified string when drawn with the specified font.
         /// </summary>
         public XSize MeasureString(string text, XFont font, XStringFormat stringFormat)
