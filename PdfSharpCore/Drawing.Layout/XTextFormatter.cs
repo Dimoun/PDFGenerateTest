@@ -295,20 +295,20 @@ namespace PdfSharpCore.Drawing.Layout
                 }
                 else
                 {
-                    ////根据宽度计算换行
-                    //if (startIndex + blockLength < _text.Length - 1)
-                    //{
-                    //    string token = _text.Substring(startIndex, blockLength);
-                    //    var width = _gfx.MeasureString(token, _font).Width;
-                    //    var nextCharWidth = _gfx.MeasureString(_text[startIndex + blockLength + 1].ToString(), _font).Width;
-                    //    if (width + nextCharWidth >= LayoutRectangle.Width - 2) //加上下一个字符超过块宽度时，强制拆分换行
-                    //    {
-                    //        _blocks.Add(new Block(token, BlockType.Text, _gfx.MeasureString(token, _font).Width));
-                    //        startIndex = idx + 1;
-                    //        blockLength = 0;
-                    //        continue;
-                    //    }
-                    //}
+                    //根据宽度计算换行
+                    if (startIndex + blockLength < _text.Length - 1)
+                    {
+                        string token = _text.Substring(startIndex, blockLength);
+                        var width = _gfx.MeasureString(token, _font).Width;
+                        var nextCharWidth = _gfx.MeasureString(_text[startIndex + blockLength + 1].ToString(), _font).Width;
+                        if (width + nextCharWidth >= LayoutRectangle.Width - 2) //加上下一个字符超过块宽度时，强制拆分换行
+                        {
+                            _blocks.Add(new Block(token, BlockType.Text, _gfx.MeasureString(token, _font).Width));
+                            startIndex = idx + 1;
+                            blockLength = 0;
+                            continue;
+                        }
+                    }
 
                     inNonWhiteSpace = true;
                     blockLength++;
