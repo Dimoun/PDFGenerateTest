@@ -26,7 +26,7 @@ namespace PdfGenerator;
 
 public class Export_MigraDocCore
 {
-    private static readonly string outputPath = System.IO.Path.Combine(
+    private readonly string outputPath = System.IO.Path.Combine(
         new FileInfo(Assembly.GetExecutingAssembly().Location).Directory.FullName, $"Export_MigraDocCore.pdf");
 
     private PostoperativeReportViewModel model = new();
@@ -97,29 +97,12 @@ public class Export_MigraDocCore
             AddSectionHeader(section, "术后评估");
 
             string text = model.Evaluation ?? "无";
-            var evalPara = section.AddParagraph();
-            evalPara.AddFormattedText(text);
-            evalPara.Format.Font.Size = 14;
-            evalPara.Format.Font.Bold = true;
-            evalPara.Format.LeftIndent = Unit.FromPoint(10);
-            evalPara.Format.SpaceAfter = Unit.FromPoint(15);
-
+            AddEvaluation(section, doc, text);
+            
             // 渲染为 PDF
             var renderer = new PdfDocumentRenderer(true);
             renderer.Document = doc;
             renderer.RenderDocument();
-
-            //var pdfDocument = renderer.PdfDocument;
-            //Evaluate(pdfDocument, doc);
-
-            //string text = model.Evaluation ?? "无";
-            //var evalPara = section.AddParagraph(text);
-            //evalPara.Format.Font.Size = 14;
-            //evalPara.Format.Font.Bold = true;
-            //evalPara.Format.FirstLineIndent = Unit.FromPoint(10);
-            //evalPara.Format.RightIndent = Unit.FromPoint(10);
-            //evalPara.Format.SpaceAfter = Unit.FromPoint(15);
-
             renderer.PdfDocument.Save(outputPath);
 
             // 可选：自动打开 PDF（仅 Windows）
@@ -279,6 +262,80 @@ public class Export_MigraDocCore
         }
     }
 
+    public void AddEvaluation(Section section, Document doc,string text)
+    {
+        var para = section.AddParagraph();
+        para.Format.Font.Size = 14;
+        para.Format.Font.Bold = true;
+
+        PdfDocument document = new PdfDocument();
+        PdfPage page = document.AddPage();
+        page.Size = PageSize.A4;
+
+        XGraphics gfx = XGraphics.FromPdfPage(page);
+        gfx.MUH = PdfFontEncoding.Unicode;
+
+        double conWidth = page.Width - Unit.FromPoint(20)-Unit.FromPoint(20).Value;
+        
+        XFont font = new XFont("simhei", 14, XFontStyle.Regular, new XPdfFontOptions(PdfFontEncoding.Unicode));
+
+        var lines = WrapText(gfx, text, font, conWidth);
+
+        foreach (var line in lines)
+        {
+            para.AddText(line);
+        }
+
+        para.Format.LeftIndent = Unit.FromPoint(10);
+        para.Format.SpaceAfter = Unit.FromPoint(15);
+    }
+    public List<string> WrapText(XGraphics gfx, string text, XFont font, double maxWidth)
+    {
+        var lines = new List<string>();
+        int start = 0;
+
+        while (start < text.Length)
+        {
+            // 二分查找最大可行长度
+            int low = 1, high = Math.Min(text.Length - start, 300); // 防止过长
+            int bestLength = 1;
+
+            while (low <= high)
+            {
+                int mid = (low + high) / 2;
+                string test = text.Substring(start, mid);
+                XSize size = gfx.MeasureString(test, font);
+
+                if (size.Width <= maxWidth)
+                {
+                    bestLength = mid;
+                    low = mid + 1;
+                }
+                else
+                {
+                    high = mid - 1;
+                }
+            }
+
+            string line = text.Substring(start, bestLength);
+
+            //// 优化断点：在标点处断开
+            //if (start + bestLength < text.Length)
+            //{
+            //    int breakPos = FindBestBreak(line);
+            //    if (breakPos > 0 && breakPos < line.Length)
+            //    {
+            //        line = line.Substring(0, breakPos);
+            //        bestLength = breakPos;
+            //    }
+            //}
+
+            lines.Add(line);
+            start += bestLength;
+        }
+
+        return lines;
+    }
     public void Evaluate(PdfDocument document, Document doc)
     {
         PdfPage page = document.AddPage();
