@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="TextFormatterExtension.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Flurl.Http" Version="3.2.0" />
+
+	  <!--MigrateDocCore 内依赖PdfSharpCore-->
+    <!--<PackageReference Include="MigraDocCore.DocumentObjectModel" Version="1.3.67" />
+    <PackageReference Include="MigraDocCore.Rendering" Version="1.3.67" />-->
+    <PackageReference Include="PdfSharp" Version="6.2.2" />
+    <!--<PackageReference Include="PdfSharpCore" Version="1.3.67" />-->
+    <PackageReference Include="QuestPDF" Version="2025.7.2" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MigraDocCore.DocumentObjectModel\MigraDocCore.DocumentObjectModel.csproj" />
+    <ProjectReference Include="..\MigraDocCore.Rendering\MigraDocCore.Rendering.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\Fonts\MSYH.TTC">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Fonts\SIMHEI.TTF">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Fonts\SIMSUN.TTC">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\RecipeTemplate.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\ReportTemplate.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\TestPic.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Ultrasound.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
