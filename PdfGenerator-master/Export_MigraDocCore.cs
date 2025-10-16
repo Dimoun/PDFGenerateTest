@@ -62,128 +62,84 @@ public class Export_MigraDocCore
         section.PageSetup.BottomMargin = Unit.FromPoint(20);
 
         contentWidth = A4_WIDTH
-                      - section.PageSetup.LeftMargin.Point
-                      - section.PageSetup.RightMargin.Point;
-        //// === 标题 ===
-        //var titlePara = section.AddParagraph(model.Title);
-        //titlePara.Format.Alignment = ParagraphAlignment.Center;
-        //titlePara.Format.Font.Size = 24;
-        //titlePara.Format.Font.Bold = true;
-        //titlePara.Format.SpaceAfter = Unit.FromPoint(15);
+                       - section.PageSetup.LeftMargin.Point
+                       - section.PageSetup.RightMargin.Point;
+        // === 标题 ===
+        var titlePara = section.AddParagraph(model.Title);
+        titlePara.Format.Alignment = ParagraphAlignment.Center;
+        titlePara.Format.Font.Size = 24;
+        titlePara.Format.Font.Bold = true;
+        titlePara.Format.SpaceAfter = Unit.FromPoint(15);
 
-        //// === 病人信息 ===
-        //AddSectionHeader(section, "病人信息");
-        //AddPatientInfoTable(section);
+        // === 病人信息 ===
+        AddSectionHeader(section, "病人信息");
+        AddPatientInfoTable(section);
 
-        //// === 手术信息 ===
-        //AddSectionHeader(section, "手术信息");
-        //AddSurgeryInfoTable(section);
+        // === 手术信息 ===
+        AddSectionHeader(section, "手术信息");
+        AddSurgeryInfoTable(section);
 
-        //// === 术前图像 ===
-        //if (model.PreOpImagePaths?.Any() == true)
-        //{
-        //    AddSectionHeader(section, "术前图像");
-        //    AddImages(section, model.PreOpImagePaths);
-        //}
+        // === 术前图像 ===
+        if (model.PreOpImagePaths?.Any() == true)
+        {
+            AddSectionHeader(section, "术前图像");
+            AddImages(section, model.PreOpImagePaths);
+        }
 
-        //// === 术后图像 ===
-        //if (model.PostOpImagePaths?.Any() == true)
-        //{
-        //    AddSectionHeader(section, "术后图像");
-        //    AddImages(section, model.PostOpImagePaths);
-        //}
+        // === 术后图像 ===
+        if (model.PostOpImagePaths?.Any() == true)
+        {
+            AddSectionHeader(section, "术后图像");
+            AddImages(section, model.PostOpImagePaths);
+            //}
 
-        // === 术后评估 ===
-        AddSectionHeader(section, "术后评估");
-        
-        string text = model.Evaluation ?? "无";
-        var evalPara = section.AddParagraph();
-        evalPara.AddFormattedText(text);
-        evalPara.Format.Font.Size = 14;
-        evalPara.Format.Font.Bold = true;
-        //evalPara.Format.FirstLineIndent = Unit.FromPoint(10);
-        //evalPara.Format.RightIndent = Unit.FromPoint(10);
-        //evalPara.Format.SpaceAfter = Unit.FromPoint(15);
+            // === 术后评估 ===
+            AddSectionHeader(section, "术后评估");
 
-        // 渲染为 PDF
-        var renderer = new PdfDocumentRenderer(true);
-        renderer.Document = doc;
-        renderer.RenderDocument();
+            string text = model.Evaluation ?? "无";
+            var evalPara = section.AddParagraph();
+            evalPara.AddFormattedText(text);
+            evalPara.Format.Font.Size = 14;
+            evalPara.Format.Font.Bold = true;
+            evalPara.Format.LeftIndent = Unit.FromPoint(10);
+            evalPara.Format.SpaceAfter = Unit.FromPoint(15);
 
-        //var pdfDocument = renderer.PdfDocument;
-        //Evaluate(pdfDocument, doc);
+            // 渲染为 PDF
+            var renderer = new PdfDocumentRenderer(true);
+            renderer.Document = doc;
+            renderer.RenderDocument();
 
-        //string text = model.Evaluation ?? "无";
-        //var evalPara = section.AddParagraph(text);
-        //evalPara.Format.Font.Size = 14;
-        //evalPara.Format.Font.Bold = true;
-        //evalPara.Format.FirstLineIndent = Unit.FromPoint(10);
-        //evalPara.Format.RightIndent = Unit.FromPoint(10);
-        //evalPara.Format.SpaceAfter = Unit.FromPoint(15);
+            //var pdfDocument = renderer.PdfDocument;
+            //Evaluate(pdfDocument, doc);
 
-        renderer.PdfDocument.Save(outputPath);
+            //string text = model.Evaluation ?? "无";
+            //var evalPara = section.AddParagraph(text);
+            //evalPara.Format.Font.Size = 14;
+            //evalPara.Format.Font.Bold = true;
+            //evalPara.Format.FirstLineIndent = Unit.FromPoint(10);
+            //evalPara.Format.RightIndent = Unit.FromPoint(10);
+            //evalPara.Format.SpaceAfter = Unit.FromPoint(15);
 
-        // 可选：自动打开 PDF（仅 Windows）
-        Process.Start(new ProcessStartInfo(outputPath) { UseShellExecute = true });
+            renderer.PdfDocument.Save(outputPath);
+
+            // 可选：自动打开 PDF（仅 Windows）
+            Process.Start(new ProcessStartInfo(outputPath) { UseShellExecute = true });
+        }
     }
-    public void Evaluate(PdfDocument document,Document doc)
-    {
-        PdfPage page = document.AddPage();
-        XGraphics gfx = XGraphics.FromPdfPage(page);
-        // HACK
-        gfx.MUH = PdfFontEncoding.Unicode;
-        //gfx.MFEH = PdfFontEmbedding.Default;
 
-        XFont font = new XFont("simhei", 12, XFontStyle.Regular,
-            new XPdfFontOptions(PdfFontEncoding.Unicode));
-
-        //gfx.MeasureString(model.Evaluation, font);
-        var tf = new XTextFormatter(gfx);
-        TextFormatAlignment format = new TextFormatAlignment();
-        format.Horizontal = XParagraphAlignment.Left;
-        format.Vertical = XVerticalAlignment.Middle;
-
-        tf.DrawString("中文中文 中文中文中文中文 中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中" +
-                      " 文中文中文中文中文中文:", font, XBrushes.Red,
-            new XRect(100, 100, 300, 300),format);
-        // You always need a MigraDocCore document for rendering.
-        Section sec = doc.AddSection();
-        // Add a single paragraph with some text and format information.
-        Paragraph para = sec.AddParagraph();
-        para.Format.Alignment = ParagraphAlignment.Justify;
-        para.Format.Font.Name = "simhei";
-        para.Format.Font.Size = 12;
-        para.Format.Font.Color = Colors.DarkGray;
-        para.Format.Font.Color = Colors.DarkGray;
-        para.AddText("Duisism odigna acipsum delesenisl ");
-        para.AddFormattedText("ullum in velenit", TextFormat.Bold);
-        para.AddText(" ipit iurero dolum zzriliquisis nit wis dolore vel et nonsequipit, velendigna " +
-        "auguercilit lor se dipisl duismod tatem zzrit at laore magna feummod oloborting ea con vel " +
-        "essit augiati onsequat luptat nos diatum vel ullum illummy nonsent nit ipis et nonsequis " +
-        "niation utpat. Odolobor augait et non etueril landre min ut ulla feugiam commodo lortie ex " +
-        "essent augait el ing 中文中文中文中文中文中文 英语 中文中文中文中文中文中文中文中文中文中文" +
-        "eumsan hendre feugait prat augiatem amconul laoreet. ≤≥≈≠");
-        para.AddFormattedText("中文 中文 中文 中文 中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文");
-        para.Format.Borders.Distance = "5pt";
-        para.Format.Borders.Color = Colors.Gold;
-
-        // Create a renderer and prepare (=layout) the document
-        DocumentRenderer docRenderer = new DocumentRenderer(doc);
-        docRenderer.PrepareDocument();
-
-        // Render the paragraph. You can render tables or shapes the same way.
-        docRenderer.RenderObject(gfx, XUnit.FromCentimeter(5), XUnit.FromCentimeter(10), "12cm", para);
-    }
     private void AddSectionHeader(Section section, string title)
     {
         var para = section.AddParagraph();
         para.Format.Shading.Color = Colors.LightGray;
         para.Format.Font.Bold = true;
-        para.Format.Font.Size = 20;
-
+        para.Format.Font.Size = 18;
         para.Format.TabStops.AddTabStop(Unit.FromPoint(10), TabAlignment.Left);
+
+        //添加换行符创建多行
+        //para.AddLineBreak();
         para.AddTab();
         para.AddText(title);
+        para.AddLineBreak();
 
         para.Format.SpaceBefore = Unit.FromPoint(15);
         para.Format.SpaceAfter = Unit.FromPoint(15);
@@ -227,7 +183,7 @@ public class Export_MigraDocCore
 
         table.Format.SpaceBefore = Unit.FromPoint(5);
         table.Format.SpaceAfter = Unit.FromPoint(5);
-        
+
         var pairs = new (string label, string? value)[]
         {
             ("姓名：", model.Patient?.Name),
@@ -309,8 +265,8 @@ public class Export_MigraDocCore
             {
                 var para = section.AddParagraph();
 
-                Image image = para.AddImage(ImageSource.FromFile(path,100));
-                image.Width = Unit.FromPoint(contentWidth*0.95); // 限制宽度
+                Image image = para.AddImage(ImageSource.FromFile(path, 100));
+                image.Width = Unit.FromPoint(contentWidth * 0.95); // 限制宽度
                 image.LockAspectRatio = true;
                 para.Format.SpaceAfter = Unit.FromPoint(5);
                 para.Format.Alignment = ParagraphAlignment.Center;
@@ -321,6 +277,55 @@ public class Export_MigraDocCore
                     .Format.Font.Color = Colors.Red;
             }
         }
+    }
+
+    public void Evaluate(PdfDocument document, Document doc)
+    {
+        PdfPage page = document.AddPage();
+        XGraphics gfx = XGraphics.FromPdfPage(page);
+        // HACK
+        gfx.MUH = PdfFontEncoding.Unicode;
+        //gfx.MFEH = PdfFontEmbedding.Default;
+
+        XFont font = new XFont("simhei", 12, XFontStyle.Regular,
+            new XPdfFontOptions(PdfFontEncoding.Unicode));
+
+        //gfx.MeasureString(model.Evaluation, font);
+        var tf = new XTextFormatter(gfx);
+        TextFormatAlignment format = new TextFormatAlignment();
+        format.Horizontal = XParagraphAlignment.Left;
+        format.Vertical = XVerticalAlignment.Middle;
+
+        tf.DrawString("中文中文 中文中文中文中文 中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中" +
+                      " 文中文中文中文中文中文:", font, XBrushes.Red,
+            new XRect(100, 100, 300, 300), format);
+        // You always need a MigraDocCore document for rendering.
+        Section sec = doc.AddSection();
+        // Add a single paragraph with some text and format information.
+        Paragraph para = sec.AddParagraph();
+        para.Format.Alignment = ParagraphAlignment.Justify;
+        para.Format.Font.Name = "simhei";
+        para.Format.Font.Size = 12;
+        para.Format.Font.Color = Colors.DarkGray;
+        para.Format.Font.Color = Colors.DarkGray;
+        para.AddText("Duisism odigna acipsum delesenisl ");
+        para.AddFormattedText("ullum in velenit", TextFormat.Bold);
+        para.AddText(" ipit iurero dolum zzriliquisis nit wis dolore vel et nonsequipit, velendigna " +
+        "auguercilit lor se dipisl duismod tatem zzrit at laore magna feummod oloborting ea con vel " +
+        "essit augiati onsequat luptat nos diatum vel ullum illummy nonsent nit ipis et nonsequis " +
+        "niation utpat. Odolobor augait et non etueril landre min ut ulla feugiam commodo lortie ex " +
+        "essent augait el ing 中文中文中文中文中文中文 英语 中文中文中文中文中文中文中文中文中文中文" +
+        "eumsan hendre feugait prat augiatem amconul laoreet. ≤≥≈≠");
+        para.AddFormattedText("中文 中文 中文 中文 中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文中文");
+        para.Format.Borders.Distance = "5pt";
+        para.Format.Borders.Color = Colors.Gold;
+
+        // Create a renderer and prepare (=layout) the document
+        DocumentRenderer docRenderer = new DocumentRenderer(doc);
+        docRenderer.PrepareDocument();
+
+        // Render the paragraph. You can render tables or shapes the same way.
+        docRenderer.RenderObject(gfx, XUnit.FromCentimeter(5), XUnit.FromCentimeter(10), "12cm", para);
     }
 }
 
