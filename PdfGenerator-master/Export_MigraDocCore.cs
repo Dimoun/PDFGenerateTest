@@ -43,7 +43,7 @@ public class Export_MigraDocCore
             throw new ArgumentException("输出路径不能为空", nameof(outputPath));
 
         // 设置中文字体解析器（关键！）
-        GlobalFontSettings.FontResolver = new BaseFontResolver();
+        //GlobalFontSettings.FontResolver = new BaseFontResolver();
 
         var doc = new Document();
 
@@ -53,17 +53,8 @@ public class Export_MigraDocCore
         doc.Styles["Normal"].Font.Bold = true;
 
         var section = doc.AddSection();
+        DefineContentSection(section);
 
-        // 设置 A4 页面 + 页边距（20 points ≈ 7mm）
-        section.PageSetup.PageFormat = PageFormat.A4;
-        section.PageSetup.LeftMargin = Unit.FromPoint(20);
-        section.PageSetup.RightMargin = Unit.FromPoint(20);
-        section.PageSetup.TopMargin = Unit.FromPoint(20);
-        section.PageSetup.BottomMargin = Unit.FromPoint(20);
-
-        contentWidth = A4_WIDTH
-                       - section.PageSetup.LeftMargin.Point
-                       - section.PageSetup.RightMargin.Point;
         // === 标题 ===
         var titlePara = section.AddParagraph(model.Title);
         titlePara.Format.Alignment = ParagraphAlignment.Center;
@@ -110,6 +101,39 @@ public class Export_MigraDocCore
         }
     }
 
+    public void DefineContentSection(Section section)
+    {
+        // 设置 A4 页面 + 页边距（20 points ≈ 7mm）
+        section.PageSetup.PageFormat = PageFormat.A4;
+        section.PageSetup.LeftMargin = Unit.FromPoint(20);
+        section.PageSetup.RightMargin = Unit.FromPoint(20);
+        section.PageSetup.TopMargin = Unit.FromPoint(20);
+        section.PageSetup.BottomMargin = Unit.FromPoint(20);
+        section.PageSetup.OddAndEvenPagesHeaderFooter = true;
+        section.PageSetup.StartingNumber = 1;
+
+        contentWidth = A4_WIDTH
+                       - section.PageSetup.LeftMargin.Point
+                       - section.PageSetup.RightMargin.Point;
+
+        //HeaderFooter header = section.Headers.Primary;
+        //header.AddParagraph("\tOdd Page Header");
+
+        //header = section.Headers.EvenPage;
+        //header.AddParagraph("Even Page Header");
+
+        // Create a paragraph with centered page number. See definition of style "Footer".
+        Paragraph paragraph = new Paragraph();
+        paragraph.AddTab();
+        paragraph.AddPageField();
+        paragraph.Format.Alignment = ParagraphAlignment.Center;
+
+        // Add paragraph to footer for odd pages.
+        section.Footers.Primary.Add(paragraph);
+        // Add clone of paragraph to footer for odd pages. Cloning is necessary because an object must
+        // not belong to more than one other object. If you forget cloning an exception is thrown.
+        section.Footers.EvenPage.Add(paragraph.Clone());
+    }
     private void AddSectionHeader(Section section, string title)
     {
         var para = section.AddParagraph();
@@ -297,7 +321,7 @@ public class Export_MigraDocCore
         while (start < text.Length)
         {
             // 二分查找最大可行长度
-            int low = 1, high = Math.Min(text.Length - start, 300); // 防止过长
+            int low = 1, high = Math.Min(text.Length - start, 500); // 防止过长
             int bestLength = 1;
 
             while (low <= high)
@@ -318,17 +342,6 @@ public class Export_MigraDocCore
             }
 
             string line = text.Substring(start, bestLength);
-
-            //// 优化断点：在标点处断开
-            //if (start + bestLength < text.Length)
-            //{
-            //    int breakPos = FindBestBreak(line);
-            //    if (breakPos > 0 && breakPos < line.Length)
-            //    {
-            //        line = line.Substring(0, breakPos);
-            //        bestLength = breakPos;
-            //    }
-            //}
 
             lines.Add(line);
             start += bestLength;
